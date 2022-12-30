@@ -54,3 +54,35 @@ With this level, you can now manipulate it in any way. Once you are done modifyi
 ```java
 parser.writeLevel(level);
 ```
+
+## Repository
+
+### Gradle
+```kotlin
+repositories {
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    implementation("com.github.Redned235:LevelParser:anvil:master-SNAPSHOT")
+}
+```
+
+### Maven:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.github.Redned235.LevelParser</groupId>
+        <artifactId>anvil</artifactId>
+        <version>master-SNAPSHOT</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+```
