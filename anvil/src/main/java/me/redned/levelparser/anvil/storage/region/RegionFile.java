@@ -2,15 +2,17 @@ package me.redned.levelparser.anvil.storage.region;
 
 import lombok.Getter;
 import me.redned.levelparser.anvil.AnvilChunk;
-import me.redned.levelparser.anvil.AnvilLevel;
+import me.redned.levelparser.anvil.util.FastByteArrayOutputStream;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.DeflaterOutputStream;
@@ -81,14 +83,14 @@ public class RegionFile {
 
             NbtMap serializedChunk = chunkSerializer.apply(chunk);
 
-            ByteArrayOutputStream byteStream = new ByteArrayOutputStream(SECTOR_SIZE);
+            FastByteArrayOutputStream byteStream = new FastByteArrayOutputStream(SECTOR_SIZE);
             try (BufferedOutputStream outputStream = new BufferedOutputStream(new DeflaterOutputStream(byteStream))) {
                 try (NBTOutputStream nbtOutputStream = NbtUtils.createWriter(outputStream)) {
                     nbtOutputStream.writeTag(serializedChunk);
                 }
             }
 
-            byte[] bytes = byteStream.toByteArray();
+            byte[] bytes = byteStream.getByteArray();
             this.file.writeInt(bytes.length + 1);
             this.file.writeByte(2); // Zlib
             this.file.write(bytes, 0, bytes.length);
