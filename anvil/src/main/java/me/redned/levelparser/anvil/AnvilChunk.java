@@ -1,5 +1,6 @@
 package me.redned.levelparser.anvil;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import me.redned.levelparser.Biome;
@@ -13,13 +14,14 @@ import java.util.List;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class AnvilChunk implements Chunk {
     private final AnvilLevel level;
     private final int x;
     private final int z;
     private long inhabitedTime;
     private final String status;
-    private final List<NbtMap> blockEntities = new ArrayList<>();
+    private final List<NbtMap> blockEntities;
 
     private final ChunkSection[] sections;
 
@@ -28,11 +30,7 @@ public class AnvilChunk implements Chunk {
     }
 
     public AnvilChunk(AnvilLevel level, int x, int z, String status) {
-        this.level = level;
-        this.x = x;
-        this.z = z;
-        this.status = status;
-        this.sections = new ChunkSection[(level.getMaxHeight() >> 4) - (level.getMinHeight() >> 4)];
+        this(level, x, z, -1, status, new ArrayList<>(), new ChunkSection[(level.getMaxHeight() >> 4) - (level.getMinHeight() >> 4)]);
     }
 
     @Override
@@ -54,7 +52,7 @@ public class AnvilChunk implements Chunk {
         ChunkSection section = this.getSection(sectionY);
         if (section == null) {
             int arrayY = sectionY - (this.level.getMinHeight() >> 4);
-            section = this.sections[arrayY] = new AnvilChunkSection(sectionY, this.level.hasSkyLight());
+            section = this.sections[arrayY] = new AnvilChunkSection(sectionY);
         }
 
         section.setBlockState(x, y, z, state);
@@ -79,7 +77,7 @@ public class AnvilChunk implements Chunk {
         ChunkSection section = this.getSection(sectionY);
         if (section == null) {
             int arrayY = sectionY - (this.level.getMinHeight() >> 4);
-            section = this.sections[arrayY] = new AnvilChunkSection(sectionY, this.level.hasSkyLight());
+            section = this.sections[arrayY] = new AnvilChunkSection(sectionY);
         }
 
         section.setBiome(x, y, z, biome);

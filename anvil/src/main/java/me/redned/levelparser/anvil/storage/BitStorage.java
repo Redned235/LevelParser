@@ -3,6 +3,9 @@ package me.redned.levelparser.anvil.storage;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.function.IntFunction;
+import java.util.function.LongFunction;
+
 @ToString
 @Getter
 public class BitStorage {
@@ -38,15 +41,19 @@ public class BitStorage {
     private final long divideMultiply;
     private final long divideAdd;
     private final int divideShift;
-    
+
     public BitStorage(int bitsPerEntry, int size) {
+        this(bitsPerEntry, size, long[]::new);
+    }
+
+    public BitStorage(int bitsPerEntry, int size, IntFunction<long[]> intFunction) {
         this.bits = bitsPerEntry;
         this.size = size;
 
         this.maxValue = (1L << bitsPerEntry) - 1L;
         this.valuesPerLong = (char) (64 / bitsPerEntry);
         int expectedLength = (size + this.valuesPerLong - 1) / this.valuesPerLong;
-        this.data = new long[expectedLength];
+        this.data = intFunction.apply(expectedLength);
         int magicIndex = 3 * (this.valuesPerLong - 1);
         this.divideMultiply = Integer.toUnsignedLong(MAGIC_VALUES[magicIndex]);
         this.divideAdd = Integer.toUnsignedLong(MAGIC_VALUES[magicIndex + 1]);

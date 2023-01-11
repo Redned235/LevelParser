@@ -80,11 +80,4 @@ public interface Level {
      * @return the maximum height of the level
      */
     int getMaxHeight();
-
-    /**
-     * Gets whether this world has a skylight.
-     *
-     * @return whether this world has a skylight
-     */
-    boolean hasSkyLight();
 }

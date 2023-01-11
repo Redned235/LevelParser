@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import me.redned.levelparser.Biome;
 import me.redned.levelparser.BlockState;
-import me.redned.levelparser.Chunk;
 import me.redned.levelparser.Level;
 
 import java.util.HashMap;
@@ -16,10 +15,17 @@ public class AnvilLevel implements Level {
     private final int minHeight;
     private final int maxHeight;
     private final long worldTime;
-    private final boolean skyLight;
     private final LevelData levelData;
 
-    private final Map<Long, AnvilChunk> chunks = new HashMap<>();
+    private final Map<Long, AnvilChunk> chunks;
+
+    public AnvilLevel(int minHeight, int maxHeight, long worldTime, LevelData levelData) {
+        this.minHeight = minHeight;
+        this.maxHeight = maxHeight;
+        this.worldTime = worldTime;
+        this.levelData = levelData;
+        this.chunks = new HashMap<>();
+    }
 
     @Override
     public boolean chunkExists(int x, int z) {
@@ -57,11 +63,6 @@ public class AnvilLevel implements Level {
     public void setBiome(int x, int y, int z, Biome biome) {
         AnvilChunk chunk = this.getChunk(x >> 4, z >> 4);
         chunk.setBiome(x, y, z, biome);
-    }
-
-    @Override
-    public boolean hasSkyLight() {
-        return this.skyLight;
     }
 
     public LevelData getLevelData() {

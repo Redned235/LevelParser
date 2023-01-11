@@ -12,11 +12,20 @@ public class PaletteStorage<T> {
     private final Palette<T> palette;
     private BitStorage storage;
 
-    public PaletteStorage(Palette.Type<T> paletteType) {
-        this.palette = new Palette<>(paletteType);
+    public PaletteStorage(Palette.Type<T, ?> type) {
+        this(new Palette<>(type));
+    }
+
+    private PaletteStorage(Palette<T> palette) {
+        this(palette, null);
+    }
+
+    private PaletteStorage(Palette<T> palette, long[] data) {
+        this.palette = palette;
         this.storage = new BitStorage(
-                Math.max(paletteType.minBitsPerEntry(), ceillog2(this.palette.size())),
-                this.palette.getType().maxSize()
+                Math.max(palette.getType().minBitsPerEntry(), ceillog2(this.palette.size())),
+                palette.getType().maxSize(),
+                i -> data == null ? new long[i] : data
         );
     }
 
@@ -59,6 +68,17 @@ public class PaletteStorage<T> {
         }
 
         return builder.build();
+    }
+
+    public static <T, S> PaletteStorage<T> deserialize(Palette.Type<T, S> type, NbtMap tag) {
+        List<S> types = tag.getList("palette", NbtType.byClass(type.storageType()));
+
+        long[] data = tag.getLongArray("data");
+        Palette<T> palette = Palette.deserialize(type, types);
+        PaletteStorage<T> storage = new PaletteStorage<>(palette, data.length == 0 ? null : data);
+        storage.resize(); // Resize to ensure data is in the proper place
+
+        return storage;
     }
 
     private void resize() {

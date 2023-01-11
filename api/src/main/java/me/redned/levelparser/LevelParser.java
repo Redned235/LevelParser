@@ -29,12 +29,14 @@ public final class LevelParser<T extends Level> {
      * Reads the level from the given input location using
      * the specified reader.
      *
+     * @param minHeight the minimum height of the level
+     * @param maxHeight the maximum height of the level
      * @return the level from the given input location
      * @throws RuntimeException if the level could not be loaded
      */
-    public T readLevel() {
+    public T readLevel(int minHeight, int maxHeight) {
         try {
-            return this.reader.read(this.input);
+            return this.reader.read(this.input, minHeight, maxHeight);
         } catch (IOException ex) {
             throw new RuntimeException("Failed to read level from location " + this.input, ex);
         }

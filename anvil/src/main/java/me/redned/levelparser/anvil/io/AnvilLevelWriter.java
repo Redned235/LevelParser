@@ -67,7 +67,9 @@ public class AnvilLevelWriter implements LevelWriter<AnvilLevel> {
             Files.createFile(regionPath);
 
             RegionFile regionFile = new RegionFile(regionPath, regionX, regionZ);
-            regionFile.write(entry.getValue(), this::getSerializedChunk);
+            regionFile.serialize(entry.getValue(), this::getSerializedChunk);
+
+            regionFile.close();
         }
     }
 

@@ -2,6 +2,7 @@ package me.redned.levelparser.anvil.storage.region;
 
 import lombok.Getter;
 import me.redned.levelparser.anvil.AnvilChunk;
+import me.redned.levelparser.anvil.AnvilLevel;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
@@ -9,6 +10,8 @@ import org.cloudburstmc.nbt.NbtUtils;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.DeflaterOutputStream;
 
@@ -33,7 +36,40 @@ public class RegionFile {
         }
     }
 
-    public void write(List<AnvilChunk> chunks, Function<AnvilChunk, NbtMap> chunkSerializer) throws IOException {
+    public static RegionFile deserialize(Path path, Consumer<RandomAccessFile> chunkDeserializer) throws IOException {
+        String fileName = path.getFileName().toString();
+        String[] split = fileName.split("\\.");
+        if (split.length != 4) {
+            throw new IllegalArgumentException("Invalid region file! Name should follow the format r.<x>.<z>.mca!");
+        }
+
+        int x = Integer.parseInt(split[1]);
+        int z = Integer.parseInt(split[2]);
+
+        RegionFile regionFile = new RegionFile(path, x, z);
+        RandomAccessFile file = regionFile.file;
+
+        // Read all sectors (32 * 32)
+        for (int i = 0; i < 1024; i++) {
+            file.seek(i * 4);
+
+            int offset = file.read() << 16;
+            offset |= (file.read() & 0xFF) << 8;
+            offset |= file.read() & 0xFF;
+
+            // Check if there is any sectors
+            if (file.readByte() == 0) {
+                continue;
+            }
+
+            file.seek((long) SECTOR_SIZE * offset);
+            chunkDeserializer.accept(file);
+        }
+
+        return regionFile;
+    }
+
+    public void serialize(List<AnvilChunk> chunks, Function<AnvilChunk, NbtMap> chunkSerializer) throws IOException {
         int offset = 2;
         int cursor = 0;
 
@@ -77,5 +113,9 @@ public class RegionFile {
             this.file.seek((long) offset * SECTOR_SIZE - 1);
             this.file.write(0);
         }
+    }
+
+    public void close() throws IOException {
+        this.file.close();
     }
 }

@@ -4,13 +4,15 @@ A Minecraft level parser.
 
 **Currently Supporting: Minecraft: Java Edition 1.19.x**
 
-This project only supports writing Anvil world files at the moment, but has been designed in such a way that world reading can be added, and alternative formats can also be used.
+This project only supports Anvil world files at the moment, but has been designed in such a way that alternative formats can also be used.
 
 ## Usage
 To start, you will need to create a `LevelParser` object like so:
 ```java
 LevelParser<AnvilLevel> parser = LevelParser.<AnvilLevel>builder()
+        .input(Paths.get("input"))
         .output(Paths.get("output"))
+        .reader(new AnvilLevelReader())
         .writer(new AnvilLevelWriter())
         .build();
 ```
@@ -21,7 +23,6 @@ AnvilLevel level = new AnvilLevel(
         0, // minHeight
         256, // maxHeight
         0, // worldTime
-        true, // skyLight
         new LevelData( // levelData
                 new LevelData.LevelVersion( // levelVersion
                         false, // snapshot

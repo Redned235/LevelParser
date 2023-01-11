@@ -1,5 +1,6 @@
 package me.redned.levelparser.anvil;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import me.redned.levelparser.Biome;
@@ -11,8 +12,9 @@ import me.redned.levelparser.anvil.storage.palette.Palette;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class AnvilChunkSection implements ChunkSection {
-    public static final AnvilChunkSection EMPTY = new AnvilChunkSection(-1, false);
+    public static final AnvilChunkSection EMPTY = new AnvilChunkSection(-1);
 
     private final int y;
 
@@ -22,7 +24,7 @@ public class AnvilChunkSection implements ChunkSection {
     private NibbleArray skyLight;
     private NibbleArray blockLight;
 
-    public AnvilChunkSection(int y, boolean skyLight) {
+    public AnvilChunkSection(int y) {
         this.y = y;
         this.blockPalette = new PaletteStorage<>(Palette.BLOCKS);
         this.biomePalette = new PaletteStorage<>(Palette.BIOMES);

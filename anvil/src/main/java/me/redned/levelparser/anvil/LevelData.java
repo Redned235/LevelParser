@@ -6,12 +6,15 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 @Getter
 @RequiredArgsConstructor
 public class LevelData {
+    private static final int FORMAT_VERSION = 19133;
+
     private final LevelVersion version;
     private final String levelName;
     private final int gameType;
@@ -48,7 +51,7 @@ public class LevelData {
                         .putInt("Id", this.version.dataVersion())
                         .putString("Name", this.version.name())
                         .build())
-                .putInt("version", 19133)
+                .putInt("version", FORMAT_VERSION)
                 .putLong("LastPlayed", this.lastPlayed)
                 .putCompound("DataPacks", NbtMap.builder()
                         .putList("Enabled", NbtType.STRING, this.enabledDataPacks)
@@ -65,6 +68,40 @@ public class LevelData {
         return NbtMap.builder()
                 .putCompound("Data", dataTag)
                 .build();
+    }
+
+    public static LevelData deserialize(NbtMap tag) {
+        NbtMap dataTag = tag.getCompound("Data");
+        NbtMap versionTag = dataTag.getCompound("Version");
+        NbtMap datapacksTag = dataTag.getCompound("DataPacks");
+
+        NbtMap worldGenTag = dataTag.getCompound("WorldGenSettings");
+        Map<String, NbtMap> dimensions = (Map<String, NbtMap>) worldGenTag.get("dimensions");
+
+        return new LevelData(
+                new LevelVersion(
+                        versionTag.getBoolean("Snapshot"),
+                        versionTag.getString("Series"),
+                        versionTag.getInt("Id"),
+                        versionTag.getString("Name")
+                ),
+                dataTag.getString("LevelName"),
+                dataTag.getInt("GameType"),
+                dataTag.getInt("SpawnX"),
+                dataTag.getInt("SpawnY"),
+                dataTag.getInt("SpawnZ"),
+                dataTag.getLong("LastPlayed"),
+                dataTag.getBoolean("hardcore"),
+                dataTag.getBoolean("allowCommands"),
+                datapacksTag.getList("Enabled", NbtType.STRING),
+                datapacksTag.getList("Disabled", NbtType.STRING),
+                new WorldGenSettings(
+                        worldGenTag.getBoolean("bonus_chest"),
+                        worldGenTag.getLong("seed"),
+                        worldGenTag.getBoolean("generate_features"),
+                        dimensions == null ? Collections.emptyMap() : dimensions
+                )
+        );
     }
 
     public record LevelVersion(boolean snapshot, String series, int dataVersion, String name) {

@@ -7,5 +7,5 @@ import java.nio.file.Path;
 
 public interface LevelReader<T extends Level> {
 
-    T read(Path path) throws IOException;
+    T read(Path path, int minHeight, int maxHeight) throws IOException;
 }

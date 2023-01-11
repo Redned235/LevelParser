@@ -13,31 +13,35 @@ import java.util.Map;
 
 @Getter
 public class Palette<T> {
-    public static final Type<BlockState> BLOCKS = new Type<>(
+    public static final Type<BlockState, NbtMap> BLOCKS = new Type<>(
             4,
             8,
             4096,
             (x, y, z) -> y << 8 | z << 4 | x,
             Palette::serializeBlockState,
-            BlockState.AIR
+            Palette::deserializeBlockState,
+            BlockState.AIR,
+            NbtMap.class
     );
 
-    public static final Type<Biome> BIOMES = new Type<>(
+    public static final Type<Biome, String> BIOMES = new Type<>(
             1,
             2,
             64,
             (x, y, z) -> (y << 2 | z) << 2 | x,
             Palette::serializeBiome,
-            Biome.PLAINS
+            Palette::deserializeBiome,
+            Biome.PLAINS,
+            String.class
     );
 
-    private final Palette.Type<T> type;
+    private final Palette.Type<T, ?> type;
     private final List<T> values;
     private final Map<T, Integer> valueToId = new HashMap<>();
 
     private int nextId;
 
-    public Palette(Palette.Type<T> type) {
+    public Palette(Palette.Type<T, ?> type) {
         this.type = type;
         this.values = new ArrayList<>();
 
@@ -59,17 +63,27 @@ public class Palette<T> {
         return this.values.get(id);
     }
 
-    public List<Object> serialize() {
-        List<Object> values = new ArrayList<>();
+    public int size() {
+        return this.nextId;
+    }
+
+    public <S> List<S> serialize() {
+        List<S> values = new ArrayList<>();
         for (T value : this.values) {
-            values.add(this.type.serializer().serialize(value));
+            values.add((S) this.type.serializer().serialize(value));
         }
 
         return values;
     }
 
-    public int size() {
-        return this.nextId;
+    public static <T, S> Palette<T> deserialize(Type<T, S> type, List<S> serializedTag) {
+        Palette<T> palette = new Palette<>(type);
+        for (S tag : serializedTag) {
+            T value = type.deserializer().deserialize(tag);
+            palette.idFor(value);
+        }
+
+        return palette;
     }
 
     private static NbtMap serializeBlockState(BlockState state) {
@@ -83,17 +97,29 @@ public class Palette<T> {
         return builder.build();
     }
 
+    private static BlockState deserializeBlockState(NbtMap tag) {
+        String name = tag.getString("Name");
+        NbtMap propertiesTag = tag.getCompound("Properties");
+        return BlockState.of(name, propertiesTag);
+    }
+
     private static String serializeBiome(Biome biome) {
         return biome.getIdentifier();
     }
 
-    public record Type<T>(
+    private static Biome deserializeBiome(String identifier) {
+        return Biome.of(identifier);
+    }
+
+    public record Type<T, S>(
             int minBitsPerEntry,
             int maxBitsPerEntry,
             int maxSize,
             Indexer indexer,
-            Serializer<T> serializer,
-            T defaultValue) {
+            Serializer<T, S> serializer,
+            Deserializer<T, S> deserializer,
+            T defaultValue,
+            Class<S> storageType) {
 
         @FunctionalInterface
         public interface Indexer {
@@ -101,8 +127,13 @@ public class Palette<T> {
         }
 
         @FunctionalInterface
-        public interface Serializer<T> {
-            Object serialize(T value);
+        public interface Serializer<T, S> {
+            S serialize(T value);
+        }
+
+        @FunctionalInterface
+        public interface Deserializer<T, S> {
+            T deserialize(S value);
         }
     }
 }
