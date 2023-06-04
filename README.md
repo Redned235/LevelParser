@@ -65,7 +65,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.Redned235:LevelParser:anvil:master-SNAPSHOT")
+    implementation("com.github.Redned235.LevelParser:anvil:master-SNAPSHOT")
 }
 ```
 
